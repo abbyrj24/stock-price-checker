@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            text-transform: uppercase;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stock-info {
+            text-align: center;
+        }
+
+        .stock-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stock-price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stock-change {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        .stock-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Stock Price Checker</h1>
+        <p class="subtitle">Get real-time stock prices instantly</p>
+
+        <div class="input-group">
+            <label for="stockSymbol">Stock Symbol (Ticker)</label>
+            <input 
+                type="text" 
+                id="stockSymbol" 
+                placeholder="e.g., AAPL, GOOGL, TSLA"
+                maxlength="10"
+            >
+            <div class="examples">Examples: AAPL, MSFT, GOOGL, AMZN, TSLA, META</div>
+        </div>
+
+        <button onclick="getStockPrice()">Get Stock Price</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Fetching stock data...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <div class="stock-info">
+                <div class="stock-symbol" id="symbol"></div>
+                <div class="stock-price" id="price"></div>
+                <div class="stock-change" id="change"></div>
+                <div class="stock-details" id="details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Allow Enter key to submit
+        document.getElementById('stockSymbol').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getStockPrice();
+            }
+        });
+
+        async function getStockPrice() {
+            const symbol = document.getElementById('stockSymbol').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+
+            // Reset displays
+            resultDiv.classList.remove('show');
+            errorDiv.classList.remove('show');
+            loadingDiv.classList.remove('show');
+
+            if (!symbol) {
+                showError('Please enter a stock symbol');
+                return;
+            }
+
+            // Show loading
+            loadingDiv.classList.add('show');
+
+            try {
+                // Using Alpha Vantage API (free tier - 25 requests per day)
+                const API_KEY = 'demo'; // This is a demo key, replace with your own for production
+                const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                loadingDiv.classList.remove('show');
+
+                if (data['Global Quote'] && Object.keys(data['Global Quote']).length > 0) {
+                    const quote = data['Global Quote'];
+                    displayStockData(quote);
+                } else if (data['Note']) {
+                    showError('API call limit reached. Please try again later or use your own API key.');
+                } else {
+                    showError('Stock symbol not found. Please check the symbol and try again.');
+                }
+            } catch (error) {
+                loadingDiv.classList.remove('show');
+                showError('Failed to fetch stock data. Please check your connection and try again.');
+                console.error('Error:', error);
+            }
+        }
+
+        function displayStockData(quote) {
+            const symbol = quote['01. symbol'];
+            const price = parseFloat(quote['05. price']);
+            const change = parseFloat(quote['09. change']);
+            const changePercent = quote['10. change percent'];
+            const high = parseFloat(quote['03. high']);
+            const low = parseFloat(quote['04. low']);
+            const volume = parseInt(quote['06. volume']).toLocaleString();
+            const previousClose = parseFloat(quote['08. previous close']);
+
+            document.getElementById('symbol').textContent = symbol;
+            document.getElementById('price').textContent = `$${price.toFixed(2)}`;
+            
+            const changeClass = change >= 0 ? 'positive' : 'negative';
+            const changeSymbol = change >= 0 ? '▲' : '▼';
+            document.getElementById('change').innerHTML = `
+                <span class="${changeClass}">
+                    ${changeSymbol} ${Math.abs(change).toFixed(2)} (${changePercent})
+                </span>
+            `;
+
+            document.getElementById('details').innerHTML = `
+                <div class="detail-row">
+                    <span>Previous Close:</span>
+                    <strong>$${previousClose.toFixed(2)}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Day High:</span>
+                    <strong>$${high.toFixed(2)}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Day Low:</span>
+                    <strong>$${low.toFixed(2)}</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Volume:</span>
+                    <strong>${volume}</strong>
+                </div>
+            `;
+
+            document.getElementById('result').classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>
